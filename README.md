@@ -4,21 +4,13 @@
 
 Adding setup.sh file
 
-## Requirements
-
-  - [Python 3.9](https://www.python.org/downloads/)
-  
-  - [Blowfish lib](https://pypi.org/project/blowfish/)
-  
-  - [PyCryptodome lib](https://pypi.org/project/pycryptodome/)
-  
-  - [Cryptography lib](https://pypi.org/project/cryptography/)
-
 ## Summary
 
 - ### [What is it ?]()
 
-- ### [Ciphers]()
+- ### [Requirements](https://github.com/Retr0Kr0dy/CryptSIS-rebirth#requirements)
+
+- ### [Ciphers](https://github.com/Retr0Kr0dy/CryptSIS-rebirth#ciphers-1)
 
   - #### [SHA256/utf-8](https://github.com/Retr0Kr0dy/CryptSIS-rebirth#sha256utf-8-1)
   
@@ -31,6 +23,30 @@ Adding setup.sh file
   - #### [AES-RSA](https://github.com/Retr0Kr0dy/CryptSIS-rebirth#aes-rsa)
 
 - ### [Working with folder](https://github.com/Retr0Kr0dy/CryptSIS-rebirth#aes-rsa)
+
+# What is it
+
+CryptSIS is a project that serve one cause, and it's the encryption/decryption process.
+
+The main goal of this project is for me to create a " module " that I can use to improve
+developers, cryptography, blue teaming (or red, it depends on the mood) skills.
+
+
+And in a second time as an encryption tool for working with data as ssh keypair or any 
+delicate data.
+
+
+#### ⚠️⚠️This module should never be used as production encryptor and never be trusted as fully-sercured; sandboxing purpose only.⚠️⚠️
+
+## Requirements
+
+  - [Python 3.9](https://www.python.org/downloads/)
+  
+  - [Blowfish lib](https://pypi.org/project/blowfish/)
+  
+  - [PyCryptodome lib](https://pypi.org/project/pycryptodome/)
+  
+  - [Cryptography lib](https://pypi.org/project/cryptography/)
 
 # Ciphers
 

@@ -29,7 +29,7 @@ Adding setup.sh file
 CryptSIS is a project that serve one cause, and it's the encryption/decryption process.
 
 The main goal of this project is for me to create a " module " that I can use to improve
-developers, cryptography, blue teaming (or red, it depends on the mood) skills.
+my developers, cryptography, blue teaming (or red, it depends on the mood) skills.
 
 
 And in a second time as an encryption tool for working with data as ssh keypair or any 

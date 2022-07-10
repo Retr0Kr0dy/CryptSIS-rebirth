@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
 __author__ = 'RetR0'
 
-VERSION = "1.6"
+VERSION = "2.0"
 
 #importing lib
 from hashlib import sha256
-from os import urandom
 import hashlib
 import os
 import sys
 import shutil
-from datetime import date, datetime
-
-from hamcrest import none
+from datetime import datetime
 import blowfish
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
@@ -23,8 +20,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
-from Crypto import Random
-import base64
+
 
 #color console
 W = '\033[0m' #white
@@ -66,718 +62,317 @@ def createBackup(file):
     hdr = f"{da}_{ti}"
     shutil.copyfile(file, f"backup/{file}_{hdr}")
 
-#def main selection
-def main():
-    LOGO()
-    print (P + "\n\n[+]" + GR +" - Select a Cipher.")
-    print (C + "\n  [1]" + GR +" - SHA256/utf-8")
-    print (C + "  [2]" + GR +" - Blowfish")
-    print (C + "  [3]" + GR +" - AES-256-CBC")
-    print (C + "  [4]" + GR +" - RSAxxxx")
-    print (C + "  [5]" + GR +" - AES-256-CBC + RSAxxxx")
-    print (G + "\n  [77]" + GR +" - Help")
-    print (G + "  [99]" + GR +" - Exit")
-    to_do = input (B + "\n[?]" + GR +" - Please enter a number : " + W)
-    if to_do == "1":
-        version1cipher()
-    if to_do == "2":
-        version2cipher()
-    if to_do == "3":
-        version3cipher()
-    if to_do == "4":
-        version4cipher()
-    if to_do == "5":
-        version5cipher()
-    if to_do in ["99", "exit", "quit", "bye"]:
+def XorEncDec(file, key, output):
+    i = 0
+    file_to_crypt = file
+    createBackup(file_to_crypt)
+    output = output
+    word_key = key
+    pre_keys = sha256(word_key.encode('utf-8')).digest()
+    hash_keys = hashlib.sha256(pre_keys)
+    hash_digest = hash_keys.hexdigest()
+    keys = sha256(hash_digest.encode('utf-8')).digest()
+    with open (file_to_crypt, 'rb') as f_file_to_crypt:
+        text_block = f_file_to_crypt.read()
+        text_block_2 = bytes()
+    for i in range (len(text_block)):
+        c = text_block[i]
+        j = i % len(keys)
+        b = bytes ([c^keys[j]])
+        text_block_2 = text_block_2 + b
+    with open (output, 'wb') as f_output:
+        f_output.write(text_block_2)
+        print ("\n")
+        print (P + "###########DATA ENCRYPTED/DECRYPTED###########")
+        input (GR + "\n(press enter to continue)" + W)
         exit(-1)
-    else:
-        input (R + "\n[!]" + GR + "Error : Invalid Option (press enter to continue)")
-        main()
 
+def BlowEncrypt(file, key, output):
+    text = file
+    createBackup(text)
+    keyfile = key
+    output = output
+    try :
+        with open (keyfile, 'rb') as f_keyfile:
+            rawkey = f_keyfile.read()
+        iv = bytes(rawkey[:8])
+        key = bytes(rawkey [8:])
+    except EnvironmentError:
+        input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
+        exit(-1)
+    hashnsalt = blowfish.Cipher(key)
+    
+    with open (text, 'rb') as f_file_to_crypt:
+        text_block = f_file_to_crypt.read()
+    data_result = b"".join(hashnsalt.encrypt_cfb(text_block, iv))
+    print ("\n")
+    print (P +  "################DATA ENCRYPTED################")
+    input ("\n(press enter to continue)")
+    with open (output, 'wb') as f_output:
+        f_output.write(data_result)
+    exit(-1)
 
-def version1cipher ():
-    def encdec():
-        i = 0
-        file_to_crypt = input (B + "\n\n[?]" + GR + " - Enter the name of the file to encrypt/decrypt : " + W)
-        createBackup(file_to_crypt)
-        output = input (B + "\n\n[+]" + GR + "Enter the output file name : " + W)
-        word_key = input (B + "\n\n[?]" + GR + "Enter the key in raw text : " + W)
-        pre_keys = sha256(word_key.encode('utf-8')).digest()
-        hash_keys = hashlib.sha256(pre_keys)
-        hash_digest = hash_keys.hexdigest()
-        keys = sha256(hash_digest.encode('utf-8')).digest()
-        with open (file_to_crypt, 'rb') as f_file_to_crypt:
-            text_block = f_file_to_crypt.read()
-            text_block_2 = bytes()
-        for i in range (len(text_block)):
-            c = text_block[i]
-            j = i % len(keys)
-            b = bytes ([c^keys[j]])
-            text_block_2 = text_block_2 + b
-        with open (output, 'wb') as f_output:
-            f_output.write(text_block_2)
-            print ("\n")
-            print (P + "###########DATA ENCRYPTED/DECRYPTED###########")
-            input (GR + "\n(press enter to continue)" + W)
-            main()
+def BlowDecrypt(file, key, output):
+    text = file
+    createBackup(text)
+    output = output
+    keyfile = key
 
-    os.system("clear")
-    print ("\n**********************" + B + "SHA256/utf-8" + W + "***************************")
-    print ("*************************************************************")
-    print (P + "\n\n[+]" + GR +" - Select an option.")
-    print (C + "\n  [1]" + GR +" - Encrypt/Decrypt")
-    print (G + "\n  [77]" + GR +" - Help")
-    print (G + "  [99]" + GR +" - Return to previous menu")
-    to_do = input (B + "\n[?]" + GR +" - Please enter a number : " + W)
-    if to_do == "1":
-        encdec()
-    if to_do == "77":
-        os.system("clear")
-        print(help_sha)
-        input (GR + "\n(press enter to continue)" + W)
-        version1cipher()
-    if to_do == "99":
-        main()
-    else:
-        input (R + "\n[!]" + GR + "Error : Invalid Option (press enter to continue)")
-        main()
+    try:
+        with open (keyfile, 'rb') as f_key:
+            rawkey = f_key.read()
+            iv = bytes(rawkey[:8])
+            key = bytes(rawkey [8:])
+    except EnvironmentError:
+        input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
+        exit(-1)  
+    hashnsalt = blowfish.Cipher(key)
+    with open (text, 'rb') as f_file_to_crypt:
+        text_block = f_file_to_crypt.read()
+    data_result = b"".join(hashnsalt.decrypt_cfb(text_block, iv))
+    print ("\n")
+    print (P +  "################DATA DECRYPTED################")
+    input ("\n(press enter to continue)")
+    with open (output, 'wb') as f_output:
+        f_output.write(data_result)
+    exit(-1)
 
+def BlowKeyGen(name):
+    iv = os.urandom(8)                
+    key = os.urandom(56)
+    keyfile = name
+    try:
+        with open (keyfile, 'wb') as f_keyfile:
+            f_keyfile.write(iv + key)
+        exit(-1)
+    except EnvironmentError:
+        input (R + "\n[!]" + GR + "Error : Invalid filename (press enter to continue)")
+        exit(-1)
 
-def version2cipher():
-
-    def encrypt_blow():
-
-        text = input (B + "\n\n[?]" + GR + "Enter the name of the file to crypt : " + W)
-        createBackup(text)
-        output = input (B + "\n\n[?]" + GR + "Enter the output file name : " + W)
-        keyfile = input (B + "\n\n[?]" + GR + "Import a key file to use or leave empty to create one : " + W)
-
-        if len(keyfile) > 0:
-            iv = os.urandom(8)                
-            key = os.urandom(56)
-            keyfile = keyfile
-            try :
-                with open (keyfile, 'rb') as f_keyfile:
-                    rawkey = f_keyfile.read()
-                iv = bytes(rawkey[:8])
-                key = bytes(rawkey [8:])
-            except EnvironmentError:
-                input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-                version2cipher()    
-        elif len(keyfile) == 0 :
-            iv = os.urandom(8)                
-            key = os.urandom(56)
-
-            keyfile = input (B + "\n[-]" + GR + "Enter the name of the key file to create : ")
-            try:
-                with open (keyfile, 'wb') as f_keyfile:
-                    f_keyfile.write(iv + key)
-            except EnvironmentError:
-                input (R + "\n[!]" + GR + "Error : Invalid filename (press enter to continue)")
-                version2cipher()  
-
-        hashnsalt = blowfish.Cipher(key)
-        
-        with open (text, 'rb') as f_file_to_crypt:
-            text_block = f_file_to_crypt.read()
-        data_result = b"".join(hashnsalt.encrypt_cfb(text_block, iv))
+def AesEncrypt(file, key, output):
+    text = file
+    createBackup(text)
+    output = output
+    keyfile = key
+    try:
+        with open (keyfile, 'rb') as f_key:
+            key = f_key.read()
+    except:
         print ("\n")
-        print (P +  "################DATA ENCRYPTED################")
-        input ("\n(press enter to continue)")
-        with open (output, 'wb') as f_output:
-            f_output.write(data_result)
-        version2cipher()    
-
-    def decrypt_blow():
-
-        text = input (B + "\n\n[?]" + GR + "Enter the name of the file to decrypt : " + W)
-        createBackup(text)
-        output = input (B + "\n\n[?]" + GR + "Enter the output file name : " + W)
-        keyfile = input (B + "\n\n[?]" + GR + "Import a key file to use : " + W)
-
-        try:
-            with open (keyfile, 'rb') as f_key:
-                rawkey = f_key.read()
-                iv = bytes(rawkey[:8])
-                key = bytes(rawkey [8:])
-        except EnvironmentError:
-            input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-            version2cipher()  
-        hashnsalt = blowfish.Cipher(key)
-        with open (text, 'rb') as f_file_to_crypt:
-            text_block = f_file_to_crypt.read()
-        data_result = b"".join(hashnsalt.decrypt_cfb(text_block, iv))
+        input (R + "\n[!]" + GR + "Error : Keyfile not found (press enter to continue)")
+        exit(-1)  
+    try:
+        with open (text, 'rb') as f_file_to_encrypt:
+            text_block = f_file_to_encrypt.read()
+    except:
         print ("\n")
-        print (P +  "################DATA DECRYPTED################")
-        input ("\n(press enter to continue)")
-        with open (output, 'wb') as f_output:
+        input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
+        exit(-1) 
+
+    cipher = AES.new(key, AES.MODE_CBC)
+    data_result = cipher.encrypt(pad(text_block, AES.block_size))
+
+    try:
+        with open(output, 'wb') as f_output:
+            f_output.write(cipher.iv)
             f_output.write(data_result)
-        version2cipher()
-
-    os.system("clear")
-    print ("\n**********************" + B + "Blowfish" + W + "***************************")
-    print ("*************************************************************")
-    print (P + "\n\n[+]" + GR +" - Select an option.")
-    print (C + "\n  [1]" + GR +" - Encryption")
-    print (C + "  [2]" + GR +" - Decryption")
-    print (G + "\n  [77]" + GR +" - Help")
-    print (G + "  [99]" + GR +" - Return to previous menu")
-    to_do = input (B + "\n[?]" + GR +" - Please enter a number : " + W)
-    if to_do == "1":
-        encrypt_blow()
-    if to_do == "2":
-        decrypt_blow()
-    if to_do == "77":
-        os.system("clear")
-        print(help_blow)
-        input (GR + "\n(press enter to continue)" + W)
-        version2cipher()
-    if to_do == "99":
-        main()
-    else:
-        input (R + "\n[!]" + GR + "Error : Invalid Option (press enter to continue)")
-        main()
-
-    
-def version3cipher():
-
-    def encrypt_aes():
-
-        text = input (B + "\n\n[?]" + GR + "Enter the name of the file to crypt : " + W)
-        createBackup(text)
-        output = input (B + "\n\n[?]" + GR + "Enter the output file name : " + W)
-        keyfile = input (B + "\n\n[?]" + GR + "Import a key file to use or leave empty to create one : " + W)
-
-        if len(keyfile) > 0:
-            try:
-                with open (keyfile, 'rb') as f_key:
-                    key = f_key.read()
-            except:
-                print ("\n")
-                input (R + "\n[!]" + GR + "Error : Keyfile not found (press enter to continue)")
-                version3cipher()  
-        if len(keyfile) == 0:
-            key = get_random_bytes(32)
-            keyfile = input (B + "\n[-]" + GR + "Enter the name of the key file to create : " + W)
-            try:
-                with open (keyfile, 'wb') as f_keyfile:
-                    f_keyfile.write(key)
-            except: 
-                print ("\n")
-                input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-                version3cipher()  
-        try:
-            with open (text, 'rb') as f_file_to_encrypt:
-                text_block = f_file_to_encrypt.read()
-        except:
             print ("\n")
-            input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-            version3cipher() 
+            print (P +  "################DATA ENCRYPTED################")
+            input ("\n(press enter to continue)")
+    except: 
+        print ("\n")
+        input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
+        exit(-1) 
+    exit(-1)
 
-        cipher = AES.new(key, AES.MODE_CBC)
-        data_result = cipher.encrypt(pad(text_block, AES.block_size))
+def AesDecrypt(file, key, output):
+    text = file
+    createBackup(text)
+    output = output
+    keyfile = key
 
-        try:
-            with open(output, 'wb') as f_output:
-                f_output.write(cipher.iv)
-                f_output.write(data_result)
-                print ("\n")
-                print (P +  "################DATA ENCRYPTED################")
-                input ("\n(press enter to continue)")
-        except: 
+    try:
+        with open (keyfile, 'rb') as f_key:
+            key = f_key.read()
+    except:
+        input (R + "\n[!]" + GR + "Error : Keyfile not found (press enter to continue)")
+        exit (-1)
+    try:
+        with open (text, 'rb') as f_file_to_decrypt:
+            text_block = f_file_to_decrypt.read()
+    except:
+        print ("\n")
+        input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
+        exit(-1) 
+
+    iv = text_block [:16]
+    encrypted_data = text_block [16:]
+    cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+    data_result = unpad(cipher.decrypt(encrypted_data), AES.block_size)
+
+    try:
+        with open(output, 'wb') as f_output:
+            f_output.write(data_result)
             print ("\n")
-            input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-            version3cipher() 
-        version3cipher()
+            print (P +  "################DATA DECRYPTED################")
+            input ("\n(press enter to continue)")
+    except:
+        print ("\n")
+        input ("Error : Input/Output (press enter to continue)")
+        exit(-1) 
+    exit(-1)
 
-    def decrypt_aes():
+def AesKeyGen(name):
+    key = get_random_bytes(32)
+    keyfile = name
+    try:
+        with open (keyfile, 'wb') as f_keyfile:
+            f_keyfile.write(key)
+    except: 
+        print ("\n")
+        input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
+        exit(-1)  
 
-        text = input (B + "\n\n[?]" + GR + "Enter the name of the file to decrypt : " + W)
-        createBackup(text)
-        output = input (B + "\n\n[?]" + GR + "Enter the output file name : " + W)
-        keyfile = input (B + "\n\n[?]" + GR + "Import a key file to use : " + W)
+def RsaEncrypt(file, key, output):
+    text = file
+    createBackup(text)
+    try:
+        with open (text, 'rb') as f_file_to_encrypt:
+            text_block = f_file_to_encrypt.read()
+            print ("\n\n" + G + "---Target locked---" + W)
+    except:
+        print ("\n")
+        input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
+        exit(-1) 
 
-        try:
-            with open (keyfile, 'rb') as f_key:
-                key = f_key.read()
-        except:
-            input (R + "\n[!]" + GR + "Error : Keyfile not found (press enter to continue)")
-            exit (-1)
-        try:
-            with open (text, 'rb') as f_file_to_decrypt:
-                text_block = f_file_to_decrypt.read()
-        except:
-            print ("\n")
-            input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-            version3cipher() 
+    output = output
+    password = key
 
-        iv = text_block [:16]
-        encrypted_data = text_block [16:]
-        cipher = AES.new(key, AES.MODE_CBC, iv=iv)
-        data_result = unpad(cipher.decrypt(encrypted_data), AES.block_size)
-
-        try:
-            with open(output, 'wb') as f_output:
-                f_output.write(data_result)
-                print ("\n")
-                print (P +  "################DATA DECRYPTED################")
-                input ("\n(press enter to continue)")
-        except:
-            print ("\n")
-            input ("Error : Input/Output (press enter to continue)")
-            version3cipher() 
-        version3cipher()
-
-    os.system("clear")
-    print ("\n******************" + B + "AES-256-CBC (cryptodome)" + W + "*******************")
-    print ("*************************************************************")
-    print (P + "\n\n[+]" + GR +" - Select an option.")
-    print (C + "\n  [1]" + GR +" - Encryption")
-    print (C + "  [2]" + GR +" - Decryption")
-    print (G + "\n  [77]" + GR +" - Help")
-    print (G + "  [99]" + GR +" - Return to previous menu")
-    to_do = input (B + "\n[?]" + GR +" - Please enter a number : " + W)
-
-    if to_do == "1":
-        encrypt_aes()
-    if to_do == "2":
-        decrypt_aes()
-    if to_do == "77":
-        os.system("clear")
-        print(help_aes)
-        input (GR + "\n(press enter to continue)" + W)
-        version3cipher()
-    if to_do == "99":
-        main()
-    else:
-        input (R + "\n[!]" + GR + "Error : Invalid Option (press enter to continue)")
-        main()
-
-
-def version4cipher():
-
-    def encrypt_rsa():
-        text = input (B + "\n\n[?]" + GR + "Enter the name of the file to crypt : " + W)
-        createBackup(text)
-
-        try:
-            with open (text, 'rb') as f_file_to_encrypt:
-                text_block = f_file_to_encrypt.read()
-                print ("\n\n" + G + "---Target locked---" + W)
-        except:
-            print ("\n")
-            input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-            version4cipher() 
-
-        output = input (B + "\n\n[?]" + GR + "Enter the output file name : " + W)
-        password = input (B + "\n\n[?]" + GR + "Import a public key file to use : " + W)
-
-        with open(password, "rb") as key_file:
-            public_key = serialization.load_pem_public_key(
-                key_file.read(),
-                backend=default_backend()
-            )
-
-        def encryption():
-            global encrypted
-            encrypted = public_key.encrypt(text_block,
-                padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None
-                )
-            )        
-        encryption()
-        data_result = encrypted
-        
-        try:
-            with open(output, 'wb') as f_output:
-                f_output.write(data_result)
-                print ("\n")
-                print (P +  "################DATA ENCRYPTED################")
-                input ("\n(press enter to continue)" + W)
-        except: 
-            print ("\n")
-            input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-            version4cipher() 
-        version4cipher()
-
-    def decrypt_rsa():
-        text = input (B + "\n\n[?]" + GR + "Enter the name of the file to crypt : " + W)
-        createBackup(text)
-    
-        try:
-            with open (text, 'rb') as f_file_to_encrypt:
-                text_block = f_file_to_encrypt.read()
-                print ("\n\n" + G + "---Target locked---" + W)
-        except:
-            print ("\n")
-            input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-            version4cipher() 
-
-        output = input (B + "\n\n[?]" + GR + "Enter the output file name : " + W)
-        password = input (B + "\n\n[?]" + GR + "Import a private key file to use : " + W)
-
-        try:
-            with open (password, 'rb') as f_keyfile:
-                private_key = serialization.load_pem_private_key(
-                    f_keyfile.read(),
-                    password=None,
-                    backend=default_backend()
-                )
-                print ("\n\n" + G + "---Target locked---" + W)
-        except:
-            input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-
-        def decryption():
-            global original_message
-            original_message = private_key.decrypt(text_block,
-                padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None
-                )
-            )
-        
-        decryption()
-        data_result = original_message
-
-        try:
-            with open(output, 'wb') as f_output:
-                f_output.write(data_result)
-                print ("\n")
-                print (P +  "################DATA DECRYPTED################")
-                input ("\n(press enter to continue)" + W)
-        except:
-            print ("\n")
-            input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-            version4cipher() 
-        version4cipher()
-
-    def keygen_rsa():
-
-        os.system("clear")
-        print ("\n****************************" + B + "RSA" + W + "******************************")
-        print ("*************************************************************")
-
-        print (P + "\n\n[+]" + GR +" - Select an option.")
-        print (C + "\n  [1]" + GR +" - 1024 bits")
-        print (C + "  [2]" + GR +" - 2048 bits")
-        print (C + "  [3]" + GR +" - 3072 bits")
-        print (C + "  [4]" + GR +" - 4096 bits")
-        print (G + "\n  [99]" + GR +" - Return to previous menu")
-        key_type = input (B + "\n[?]" + GR +" - Please enter a number : " + W)
-
-        if key_type == "1":
-            size = 1024
-
-        if key_type == "2":
-            size = 2048
-
-        if key_type == "3":
-            size = 3072
-
-        if key_type == "4":
-            size = 4096
-    
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=size,
+    with open(password, "rb") as key_file:
+        public_key = serialization.load_pem_public_key(
+            key_file.read(),
             backend=default_backend()
         )
-        public_key = private_key.public_key()
-        key_input = input (B + "\n[-]" + GR + "Enter the name of the key file to create : " + W)
-        priv_key_file = (key_input + "_private_key.pem")
-        publ_key_file = (key_input + "_public_key.pem")
 
-        if key_type == "99":
-            version4cipher()
-
-        try:
-            with open (priv_key_file, 'wb') as f_privkeyfile:
-                pem = private_key.private_bytes(
-                    encoding=serialization.Encoding.PEM,
-                    format=serialization.PrivateFormat.PKCS8,
-                    encryption_algorithm=serialization.NoEncryption()
-                )
-                f_privkeyfile.write(pem)
-
-            with open (publ_key_file, 'wb') as f_publkeyfile:
-                pem = public_key.public_bytes(
-                    encoding=serialization.Encoding.PEM,
-                    format=serialization.PublicFormat.SubjectPublicKeyInfo
-                )
-                f_publkeyfile.write(pem)
-        except:
-            print ("\n")
-            input (R + "\n[!]" + GR + "Error : Invalid Keyfile name (press enter to continue)")
-            version4cipher()
-
-        print ("\n")
-        print (P +  "################KEYFILE CREATED###############")
-        input ("\n(press enter to continue)")
-
-    os.system("clear")
-    print ("\n****************************" + B + "RSA" + W + "******************************")
-    print ("*************************************************************")
-    print (P + "\n\n[+]" + GR +" - Select an option.")
-    print (C + "\n  [1]" + GR +" - Encryption")
-    print (C + "  [2]" + GR +" - Decryption")
-    print (C + "  [3]" + GR +" - KeyGen")
-    print (G + "\n  [77]" + GR +" - Help")
-    print (G + "  [99]" + GR +" - Return to previous menu")
-    to_do = input (B + "\n[?]" + GR +" - Please enter a number : " + W)
-
-    if to_do == "1":
-        encrypt_rsa()
-    if to_do == "2":
-        decrypt_rsa()
-    if to_do == "3":
-        keygen_rsa()
-    if to_do == "77":
-        os.system("clear")
-        print(help_rsa)
-        input (GR + "\n(press enter to continue)" + W)
-        version4cipher()
-    if to_do == "99":
-        main()
-    else:
-        input (R + "\n[!]" + GR + "Error : Invalid Option (press enter to continue)")
-        main()
-    
-
-def version5cipher():
-
-    def encrypt_aesrsa():
-
-        text = input (B + "\n\n[?]" + GR + "Enter the name of the file to crypt : " + W)
-        createBackup(text)
-
-        try:
-            with open (text, 'rb') as f_file_to_encrypt:
-                text_block = f_file_to_encrypt.read()
-                print ("\n\n" + G + "---Target locked---" + W)
-        except:
-            print ("\n")
-            input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-            version5cipher() 
-
-        output = input (B + "\n\n[?]" + GR + "Enter the output file name : " + W)
-        aes_keyfile = input (B + "\n\n[?]" + GR + "Import a AES key file to use : " + W)
-        name_aes_keyfile = (aes_keyfile + ".crypt")
-
-        try:
-            with open (aes_keyfile, 'rb') as f_key:
-                key = f_key.read()
-        except:
-            print ("\n")
-            input (R + "\n[!]" + GR + "Error : Keyfile not found (press enter to continue)")
-            version5cipher()
-            
-        rsa_public_keyfile = input (B + "\n\n[?]" + GR + "Import a RSA public key file to use : " + W)
-
-        with open(rsa_public_keyfile, "rb") as key_file:
-            public_key = serialization.load_pem_public_key(
-                key_file.read(),
-                backend=default_backend()
+    def encryption():
+        global encrypted
+        encrypted = public_key.encrypt(text_block,
+            padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
             )
-
-        cipher = AES.new(key, AES.MODE_CBC)
-        data_result = cipher.encrypt(pad(text_block, AES.block_size))
-
-        def encryption():
-            global encrypted
-            encrypted = public_key.encrypt(key,
-                padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None
-                )
-            )        
-        encryption()
-        encypt_aes_key_file = encrypted
-        
-        try:
-            with open(name_aes_keyfile, 'wb') as f_aescrypt:
-                f_aescrypt.write(encypt_aes_key_file)
-                print ("\n")
-                print (C + "----------------KEY ENCRYPTED-----------------")
-        except: 
+        )        
+    encryption()
+    data_result = encrypted
+    
+    try:
+        with open(output, 'wb') as f_output:
+            f_output.write(data_result)
             print ("\n")
-            input (R + "\n[!]" + GR + "Error : Key encryption falied (press enter to continue)")
-            version5cipher() 
+            print (P +  "################DATA ENCRYPTED################")
+            input ("\n(press enter to continue)" + W)
+    except: 
+        print ("\n")
+        input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
+        exit(-1) 
+    exit(-1)
 
-        try:
-            with open(output, 'wb') as f_output:
-                f_output.write(cipher.iv)
-                f_output.write(data_result)
-                print ("\n")
-                print (P + "################DATA ENCRYPTED################")
-                input ("\n(press enter to continue)" + W)
-        except: 
-            print ("\n")
-            input (R + "\n[!]" + GR + "Error : Encryption falied (press enter to continue)")
-            version5cipher() 
-        version5cipher()
+def RsaDecrypt(file, key, output):
+    text = file
+    createBackup(text)
+    try:
+        with open (text, 'rb') as f_file_to_encrypt:
+            text_block = f_file_to_encrypt.read()
+            print ("\n\n" + G + "---Target locked---" + W)
+    except:
+        print ("\n")
+        input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
+        exit(-1)
 
-    def decrypt_aesrsa():
-        
-        text = input (B + "\n\n[?]" + GR + "Enter the name of the file to crypt : " + W)
-        createBackup(text)
-        
-        try:
-            with open (text, 'rb') as f_file_to_decrypt:
-                text_block = f_file_to_decrypt.read()
-                print ("\n\n" + G + "---Target locked---" + W)
-        except:
-            print ("\n")
-            input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-            version5cipher() 
+    output = output
+    password = key
 
-        output = input (B + "\n\n[?]" + GR + "Enter the output file name : " + W)
-
-        rsa_private_keyfile = input (B + "\n\n[?]" + GR + "Import a RSA private key file to use : " + W)
-
-        with open (rsa_private_keyfile, 'rb') as f_keyfile:
+    try:
+        with open (password, 'rb') as f_keyfile:
             private_key = serialization.load_pem_private_key(
                 f_keyfile.read(),
                 password=None,
                 backend=default_backend()
             )
+            print ("\n\n" + G + "---Target locked---" + W)
+    except:
+        input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
 
-        aes_keyfile = input (B + "\n\n[?]" + GR + "Import a " + O + "/!\ CRYPTED /!\ " + GR + "AES key file to use : " + W)
-
-        try:
-            with open (aes_keyfile, 'rb') as f_key:
-                key = f_key.read()
-        except:
-            print ("\n")
-            input (R + "\n[!]" + GR + "Error : Keyfile not found (press enter to continue)")
-            version5cipher()
-
-        def decryption():
-            global original_message
-            original_message = private_key.decrypt(key,
-                padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None
-                )
+    def decryption():
+        global original_message
+        original_message = private_key.decrypt(text_block,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
             )
-        
-        decryption()
-        aes_key_decrypted = original_message
-
-        iv = text_block [:16]
-        encrypted_data = text_block [16:]
-        cipher = AES.new(aes_key_decrypted, AES.MODE_CBC, iv=iv)
-        data_result = unpad(cipher.decrypt(encrypted_data), AES.block_size)
-        try:
-            with open(output, 'wb') as f_output:
-                f_output.write(data_result)
-                print ("\n")
-                print (P + "################DATA DECRYPTED################")
-                input ("\n(press enter to continue)")
-        except:
-            print ("\n")
-            input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
-            version5cipher() 
-        version5cipher()
-
-
-    def keygen_aesrsa():
-        os.system("clear")
-        print ("\n****************************" + B + "RSA" + W + "******************************")
-        print ("*************************************************************")
-
-        print (P + "\n\n[+]" + GR +" - Select an option.")
-        print (C + "\n  [1]" + GR +" - 1024 bits")
-        print (C + "  [2]" + GR +" - 2048 bits")
-        print (C + "  [3]" + GR +" - 3072 bits")
-        print (C + "  [4]" + GR +" - 4096 bits")
-        print (G + "\n  [99]" + GR +" - Return to previous menu")
-        key_type = input (B + "\n[?]" + GR +" - Please enter a number : " + W)
-
-        if key_type == "1":
-            size = 1024
-
-        if key_type == "2":
-            size = 2048
-
-        if key_type == "3":
-            size = 3072
-
-        if key_type == "4":
-            size = 4096
-    
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=size,
-            backend=default_backend()
         )
-        public_key = private_key.public_key()
-        key_input = input (B + "\n[-]" + GR + "Enter the name of the key file to create : " + W)
-        priv_key_file = (key_input + "_private_key.pem")
-        publ_key_file = (key_input + "_public_key.pem")
-        aes_key_file = (key_input + "_aes.key")
-        aes_key = get_random_bytes(32)
-        with open (aes_key_file, 'wb') as f_keyfile:
-            f_keyfile.write(aes_key)
+    
+    decryption()
+    data_result = original_message
 
-        if key_type == "99":
-            version4cipher()
-
-        try:
-            with open (priv_key_file, 'wb') as f_privkeyfile:
-                pem = private_key.private_bytes(
-                    encoding=serialization.Encoding.PEM,
-                    format=serialization.PrivateFormat.PKCS8,
-                    encryption_algorithm=serialization.NoEncryption()
-                )
-                f_privkeyfile.write(pem)
-
-            with open (publ_key_file, 'wb') as f_publkeyfile:
-                pem = public_key.public_bytes(
-                    encoding=serialization.Encoding.PEM,
-                    format=serialization.PublicFormat.SubjectPublicKeyInfo
-                )
-                f_publkeyfile.write(pem)
-        except:
+    try:
+        with open(output, 'wb') as f_output:
+            f_output.write(data_result)
             print ("\n")
-            input (R + "\n[!]" + GR + "Error : Invalid Keyfile name (press enter to continue)")
-            version4cipher()
-
+            print (P +  "################DATA DECRYPTED################")
+            input ("\n(press enter to continue)" + W)
+    except:
         print ("\n")
-        print (P +  "################KEYFILE CREATED###############")
-        input ("\n(press enter to continue)")
-    
-    os.system("clear")
-    print ("\n**************************" + B +"AES + RSA" + W + "**************************")
-    print ("*************************************************************")
-    print (P + "\n\n[+]" + GR +" - Select an option.")
-    print (C + "\n  [1]" + GR +" - Encryption")
-    print (C + "  [2]" + GR +" - Decryption")
-    print (C + "  [3]" + GR +" - KeyGen")
-    print (G + "\n  [77]" + GR +" - Help")
-    print (G + "  [99]" + GR +" - Return to previous menu")
-    to_do = input (B + "\n[?]" + GR +" - Please enter a number : " + W)
+        input (R + "\n[!]" + GR + "Error : Invalid input/output (press enter to continue)")
+        exit(-1) 
+    exit(-1)
 
-    if to_do == "1":
-        encrypt_aesrsa()
-    if to_do == "2":
-        decrypt_aesrsa()
-    if to_do == "3":
-        keygen_aesrsa()
-    if to_do == "77":
-        os.system("clear")
-        print(help_aesrsa)
-        input (GR + "\n(press enter to continue)" + W)
-        version5cipher()
-    if to_do == "99":
-        main()
+def RsaKeyGen(name, size):
+    if size == '1024':
+        size = 1024
+    elif size == '2048':
+        size = 2048
+    elif size == '3072':
+        size = 3072
+    elif size == '4096':
+        size = 4096
     else:
-        input (R + "\n[!]" + GR + "Error : Invalid Option (press enter to continue)")
-        main()
-    
-        
+        print(R+"\n[!]"+W+" Wrong key size")
+        exit(-1)
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=size,
+        backend=default_backend()
+    )
+    public_key = private_key.public_key()
+    key_input = name
+    priv_key_file = (key_input + "_private_key.pem")
+    publ_key_file = (key_input + "_public_key.pem")
+
+    try:
+        with open (priv_key_file, 'wb') as f_privkeyfile:
+            pem = private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption()
+            )
+            f_privkeyfile.write(pem)
+
+        with open (publ_key_file, 'wb') as f_publkeyfile:
+            pem = public_key.public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo
+            )
+            f_publkeyfile.write(pem)
+    except:
+        print ("\n")
+        input (R + "\n[!]" + GR + "Error : Invalid Keyfile name (press enter to continue)")
+        exit(-1)
+    print ("\n")
+    print (P +  "################KEYFILE CREATED###############")
+    input ("\n(press enter to continue)")
+    exit(-1)
 
 
 
@@ -793,6 +388,105 @@ def version5cipher():
 
 
 
+def main():
+    if sys.argv[1] == '-c' or sys.argv[1] == '-h' or sys.argv[1] == '-u':
+        if sys.argv[1] == '-u' and len(sys.argv) == 2:
+            print(usage_main)
+            exit(-1)    
+        if sys.argv[1] == '-c':
+            if sys.argv[2] == 'XOR':
+                if sys.argv[3] == '-h':
+                    print(help_xor)
+                    exit(-1)
+                elif sys.argv[3] == '-u':
+                    print(usage_xor)
+                    exit(-1)
+                if sys.argv[3] == '-i':
+                    infile = sys.argv[4]
+                    if sys.argv[5] == '-o':
+                        outfile = sys.argv[6]
+                        if sys.argv[7] == '-k':
+                            key = sys.argv[8]
+                            XorEncDec(infile, key, outfile)
+
+            if sys.argv[2] == 'BLOW':
+                if sys.argv[3] == '-h':
+                    print(help_blow)
+                    exit(-1)
+                elif sys.argv[3] == '-u':
+                    print(usage_blow)
+                    exit(-1)
+                elif sys.argv[3] == '-e' or sys.argv[3] == '-d':
+                    if sys.argv[4] == '-i':
+                        infile = sys.argv[5]
+                        if sys.argv[6] == '-o':
+                            outfile = sys.argv[7]
+                            if sys.argv[8] == '-k':
+                                key = sys.argv[9]
+                                if sys.argv[3] == '-e':
+                                    BlowEncrypt(infile, key, outfile)
+                                if sys.argv[3] == '-d':
+                                    BlowDecrypt(infile, key, outfile)
+                elif sys.argv[3] == '-kG':
+                    if sys.argv[4] == '-o':
+                        name = sys.argv[5]
+                        BlowKeyGen(name)
+                        exit(-1)
+
+            if sys.argv[2] == 'AES':
+                if sys.argv[3] == '-h':
+                    print(help_aes)
+                    exit(-1)
+                elif sys.argv[3] == '-u':
+                    print(usage_aes)
+                    exit(-1)
+                elif sys.argv[3] == '-e' or sys.argv[3] == '-d':
+                    if sys.argv[4] == '-i':
+                        infile = sys.argv[5]
+                        if sys.argv[6] == '-o':
+                            outfile = sys.argv[7]
+                            if sys.argv[8] == '-k':
+                                key = sys.argv[9]
+                                if sys.argv[3] == '-e':
+                                    AesEncrypt(infile, key, outfile)
+                                if sys.argv[3] == '-d':
+                                    AesDecrypt(infile, key, outfile)
+                elif sys.argv[3] == '-kG':
+                    if sys.argv[4] == '-o':
+                        name = sys.argv[5]
+                        AesKeyGen(name)
+                        exit(-1)
+
+            if sys.argv[2] == 'RSA':
+                if sys.argv[3] == '-h':
+                    print(help_rsa)
+                    exit(-1)
+                elif sys.argv[3] == '-u':
+                    print(usage_rsa)
+                    exit(-1)
+                elif sys.argv[3] == '-e' or sys.argv[3] == '-d':
+                    if sys.argv[4] == '-i':
+                        infile = sys.argv[5]
+                        if sys.argv[6] == '-o':
+                            outfile = sys.argv[7]
+                            if sys.argv[8] == '-k':
+                                key = sys.argv[9]
+                                if sys.argv[3] == '-e':
+                                    RsaEncrypt(infile, key, outfile)
+                                if sys.argv[3] == '-d':
+                                    RsaDecrypt(infile, key, outfile)
+                elif sys.argv[3] == '-kG':
+                    if sys.argv[4] == '-o':
+                        name = sys.argv[5]
+                        if sys.argv[6] == '-s':
+                            size = sys.argv[7]
+                            RsaKeyGen(name, size)
+            print(usage_main)
+            exit(-1)    
+        else:
+            print("CACA")
+    else:
+        print("not good")
 
 
 
@@ -802,9 +496,133 @@ def version5cipher():
 
 
 
-#help pages
-global help_sha
-help_sha = (G + """\n                       SHA256/utf-8
+
+
+
+#Usage page
+global usage_main
+usage_main = (G + """
+  Usage ;
+
+        options :
+            -c      Ciphers selections ( XOR | BLOW | AES | RSA )
+            -e      Encrypt 
+            -d      Decrypt 
+            -k      Key file name
+            -kG     KeyGen generate key
+            -s      Size for key generation
+            -i      Input file name
+            -o      Output file name
+            -h      Print help pages
+            -u      Print usage pages
+
+        exemple :
+            cryptsis -c AES -kG -o test                             Generate AES key file named 'test'
+            cryptsis -c RSA -d -i fileA -o fileB -k key.k           Decrypt RSA 'fileA' using key.key public key, name the output 'fileB'
+            cryptsis -c BLOW -h|-u                                  Print specific help/usage pages
+            cryptsis -h|-u                                          Print main help/usage pages
+
+    CrYpTsIs """ + W)
+
+global usage_xor
+usage_xor = (G + """
+  Usage ;
+
+        options :
+            -k      Key word
+            -i      Input file name
+            -o      Output file name
+            -h      Print help pages
+            -u      Print usage pages
+            no specific options
+
+        exemple :
+            cryptsis -c XOR -i fileA -o fileB -k bang            Encrypt/Decrypt 'fileA' to 'fileB' using secret word 'bang'
+            
+    CrYpTsIs """ + W)
+
+global usage_blow
+usage_blow = (G + """
+  Usage ;
+
+        options :
+            -e      Encrypt 
+            -d      Decrypt 
+            -k      Key file name
+            -kG     KeyGen generate key
+            -i      Input file name
+            -o      Output file name
+            -h      Print help pages
+            -u      Print usage pages
+
+        exemple :
+            cryptsis -c AES -kG -o test                             Generate AES key file named 'test'
+            cryptsis -c AES -d -i fileA -o fileB -k key.k           Decrypt AES 'fileA' using key.key key, name the output 'fileB'
+            cryptsis -c AES -h|-u                                   Print specific help/usage pages
+
+    CrYpTsIs """ + W)
+
+global usage_aes
+usage_aes = (G + """
+  Usage ;
+
+        options :
+            -e      Encrypt 
+            -d      Decrypt 
+            -k      Key file name
+            -kG     KeyGen generate key
+            -i      Input file name
+            -o      Output file name
+            -h      Print help pages
+            -u      Print usage pages
+
+        exemple :
+            cryptsis -c AES -kG -o test                             Generate AES key file named 'test'
+            cryptsis -c AES -d -i fileA -o fileB -k key.k           Decrypt AES 'fileA' using key.key key, name the output 'fileB'
+            cryptsis -c AES -h|-u                                   Print specific help/usage pages
+
+    CrYpTsIs """ + W)
+
+
+global usage_rsa
+usage_rsa = (G + """
+  Usage ;
+
+        options :
+            -e      Encrypt 
+            -d      Decrypt 
+            -k      Key file name
+            -kG     KeyGen generate key
+            -s      Size of the key ( 1024 | 2048 | 3072 | 4096 )
+            -i      Input file name
+            -o      Output file name
+            -h      Print help pages
+            -u      Print usage pages
+
+        exemple :
+            cryptsis -c RSA -kG -o test                             Generate RSA key file named 'test'
+            cryptsis -c RSA -d -i fileA -o fileB -k key.k           Decrypt RSA 'fileA' using key.key key, name the output 'fileB'
+            cryptsis -c RSA -h|-u                                   Print specific help/usage pages
+
+    CrYpTsIs """ + W)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Help page
+global help_xor
+help_xor = (G + """\n                       SHA256/utf-8
 ╔═══════════════════════════════════════════════════════════╗
 ║ Two way encryption using simple XOR operation with a      ║
 ║ raw text key and SHA256/utf-8 encoding.                   ║
@@ -924,15 +742,6 @@ help_aesrsa = ( G + """\n                       AES+RSA
 ║ then select the RSA private key to decrypt the AES key.   ║
 ║ [more info in README.md]                                  ║
 ╚═══════════════════════════════════════════════════════════╝\n""")
-
-
-
-
-
-
-
-
-
 
 
 

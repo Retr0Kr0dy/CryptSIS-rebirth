@@ -2,7 +2,7 @@
 
 ## Last Updates
 
-Adding setup.sh file
+Adding Args comprehension
 
 ## Summary
 
